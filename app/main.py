@@ -48,7 +48,7 @@ async def upload(request):
 @app.route('/checkupload',methods=["POST"])
 async def checkupload(request):
     args = request.args if request.method == 'GET' else request.form
-    rndstr = args.get('rndstr', '')  #加密字符串（唯一标识）
+    rndstr = args.get('rndstr', '')  # 加密字符串（唯一标识）
     # 基本文件夹路径
     path = os.path.abspath(os.path.dirname(__file__))
     basepath = "{}\\files\\{}".format(path, rndstr)
