@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+
+    <div class="btn_upload">
+        <input type="file" name="file" id="file_1" class="inputfile">
+         <label for="file_1"  data-id="{{msg.uid}}" class="m_start extract">上传文件</label>
+    </div>
+    <div class="info-con">
+        <div class="info-title">上传列表</div>
+        <ul class="info-con-ul"></ul>
+    </div>
+    <script src="/static/js/jquery.min.js"></script>
+    <script>
+        //记录当前文件上传状态
+        var init={};
+        (function(){
+            //上传图片
+            $("#file_1").on("change", function() {
+                var file = $(this).get(0).files[0];  //文件对象
+                var fname = file.name;        //文件名
+                var totalsize = file.size;      //总大小
+                //换算M和Kb
+                if (totalsize > 1024 * 1024){
+                    var tosize = (Math.round(totalsize * 100 / (1024 * 1024)) / 100).toString() + 'M';
+                }
+                else{
+                    var tosize = (Math.round(totalsize * 100 / 1024) / 100).toString() + 'KB';
+                }
+                //生成随机字符串
+                var rndstr=randomString(16);
+                //加入当前上传全局管理状态
+                init[rndstr]=false;
+                //上传文件html
+                var html='<li class="info-con-li info-li-'+rndstr+'">\n' +
+                    '                <div class="process" style="width: 0%;"></div>\n' +
+                    '                <div class="info">\n' +
+                    '                    <div class="file-name" title="'+fname+'">\n' +
+                    '                        <div class="file-icon fileicon-small-zip"></div>\n' +
+                    '                        <span class="name-text">'+fname+'</span>\n' +
+                    '                    </div>\n' +
+                    '                    <div class="file-size">'+tosize+'</div>\n' +
+                    '                    <div class="file-status">\n' +
+                    '                        <span class="waiting">排队中…</span>\n' +
+                    '                        <span class="prepare">准备上传…</span>\n' +
+                    '                        <span class="uploading" data-pernum="0" data-upsize="0" data-pretime="0" style="display: block">\n' +
+                    '                            <em class="precent">0.00%</em>\n' +
+                    '                            <em class="speed">(0kb/s)</em>\n' +
+                    '                        </span>\n' +
+                    '                        <span class="error"><em></em><i>服务器错误</i><b></b></span>\n' +
+                    '                        <span class="pause"><em></em><i>已暂停</i></span>\n' +
+                    '                        <span class="cancel"><em></em><i>已取消</i></span>\n' +
+                    '                        <span class="success"><em></em><i></i></span>\n' +
+                    '                    </div>\n' +
+                    '                    <div class="file-operate">\n' +
+                    '                        <em class="operate-pause"></em>\n' +
+                    '                        <em class="operate-continue"></em>\n' +
+                    '                        <em class="operate-retry"></em>\n' +
+                    '                        <em class="operate-remove"></em>\n' +
+                    '                    </div>\n' +
+                    '                </div>\n' +
+                    '            </li>';
+                $(".info-con-ul").append(html);
+                //暂停上传
+                $(".info-li-"+rndstr).find(".operate-pause").unbind('click').click(function(){
+                    console.log("暂停上传");
+                    //xhr.abort();
+                    $(this).hide();
+                    $(this).parent().parent().find(".uploading").hide();
+                    $(this).parent().parent().find(".pause").show();
+                    $(this).parent().find(".operate-continue").show();
+                });
+                //继续上传
+                $(".info-li-"+rndstr).find(".operate-continue").unbind('click').click(function(){
+                    console.log("继续上传")
+                    $(this).hide();
+                    $(this).parent().parent().find(".uploading").show();
+                    $(this).parent().parent().find(".pause").hide();
+                    $(this).parent().find(".operate-pause").show();
+                    console.log(init[rndstr])
+                    if (!init[rndstr]){
+                        $.ajax({
+                            url: '/getrecord',
+                            type: "POST",
+                            data: {
+                                "rndstr":rndstr
+                            },
+                            success:function(data){
+                                console.log(data)
+                                if (data.code==200){
+                                    fileUpload(file,data.zoneid,rndstr);
+                                }else{
+                                    console.log(data.msg)
+                                }
+
+                            }
+                        });
+                    }
+                });
+                var i=0;
+                var xhr='';
+                fileUpload(file,i,rndstr,xhr);
+            });
+
+            //上传文件方法
+            function fileUpload(file,i,rndstr,xhr){
+                //修改当前上传状态
+                init[rndstr]=true;
+                $(".info-li-"+rndstr).find(".uploading").data("upsize",0);
+                var fname = file.name;        //文件名
+                var totalsize = file.size;      //总大小
+                var filesize = 0.5 * 1024 * 1024;    //以500k为一个分片
+                var filenum = Math.ceil(totalsize / filesize);  //总片数
+                //for(var i = 0;i < filenum;++i) {
+                    //计算每一片的起始与结束位置
+                    var start = i * filesize;
+                    var end = Math.min(totalsize, start + filesize);
+                    var curfile=file.slice(start,end);
+                    var data = new FormData();
+                    data.append('file', curfile);
+                    data.append('filename', fname);
+                    data.append('filenum', filenum);
+                    data.append('rndstr', rndstr);
+                    data.append('zoneid', i);
+                    $.ajax({
+                        url: '/upload',
+                        type: "POST",
+                        processData: false,
+                        contentType: false,
+                        data: data,
+                        success:function(){
+                            init[rndstr]=false;
+                            //结合CSS处理xhr对象
+                            if ($(".info-li-"+rndstr).find(".operate-continue").css('display') == 'block') {
+                                xhr.abort();
+                            }else{
+                                i += 1;
+                                if (i < filenum) {
+                                    fileUpload(file, i, rndstr,xhr);
+                                }else{
+                                    $(".info-li-"+rndstr).find(".file-status span").hide();
+                                    $(".info-li-"+rndstr).find(".file-operate em").hide();
+                                    $(".info-li-"+rndstr).find(".success").show();
+                                }
+                            }
+                        },
+                        xhr: function(){
+                            xhr = $.ajaxSettings.xhr();
+                            if(uploadProgress && xhr.upload) {
+                                xhr.upload.addEventListener("progress" , function(){uploadProgress(event,".info-li-"+rndstr,totalsize)}, false);
+                                return xhr;
+                            }
+                        }
+                    })
+                //}
+            }
+            //上传进度跟踪
+            function uploadProgress(evt,classname,totalsize){
+                //获取上一次的已上传文件大小及时间
+                var preupsize=parseFloat($(classname).find(".uploading").data("upsize"));
+                var pretime=parseFloat($(classname).find(".uploading").data("pretime"));
+                var loaded = evt.loaded;     //已经上传大小情况
+                var per = (loaded-preupsize)/totalsize;  //已经上传的百分比
+                var nowtime = new Date().getTime();      //获取当前时间
+                //通过当前和上一次的上传大小及时间计算上传速度
+                var speed =(loaded-preupsize)/1024/((nowtime-pretime)/1000);
+                var speedStr = (speed >= 1024) ? (speed/1024) + "":speed + "";
+                speedStr=toDecimal2(speedStr);
+                speedStr= speedStr+ (speed>1024?" Mb/s" : " Kb/s");
+                //赋值
+                $(classname).find(".speed").html('('+speedStr+')');
+                $(classname).find(".uploading").data("upsize",loaded);
+                $(classname).find(".uploading").data("pretime",nowtime);
+                //当前总的文件上传大小
+                var cursize=parseFloat($(classname).find(".uploading").data("pernum"));
+                cursize+=per;
+                cursize=cursize>1?1:cursize;
+                var curper=toDecimal2(cursize*100)+"%";
+                //暂停时进度条不执行，但流程还在继续
+                if ($(classname).find(".operate-continue").css('display') == 'none') {
+                    $(classname).find(".process").css('width', curper);
+                }
+                $(classname).find(".uploading").data("pernum",cursize);
+                $(classname).find(".precent").html(curper);
+             }
+
+             //制保留2位小数，如：2，会在2后面补上00.即2.00
+             function toDecimal2(x) {
+                var f = parseFloat(x);
+                if (isNaN(f)) {
+                return false;
+                }
+                var f = Math.round(x*100)/100;
+                var s = f.toString();
+                var rs = s.indexOf('.');
+                if (rs < 0) {
+                rs = s.length;
+                s += '.';
+                }
+                while (s.length <= rs + 2) {
+                s += '0';
+                }
+                return s;
+             }
+             //生成随机字符串
+            function randomString(len) {
+            　　len = len || 32;
+            　　var $chars = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';
+            　　var maxPos = $chars.length;
+            　　var pwd = '';
+            　　for (var i = 0; i < len; i++) {
+            　　　　pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
+            　　}
+            　　return pwd;
+            }
+        })()
+    </script>
+</body>
+</html>

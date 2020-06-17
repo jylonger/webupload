@@ -1,0 +1,167 @@
+body{
+    margin: 0;
+    padding: 0;
+}
+.m_start{
+    background-color: #228113;
+    padding: 4px 10px;
+    display: inline-block;
+    color: #ffffff;
+    text-align: center;
+    font-size: 16px;
+    cursor: pointer;
+}
+em,i{
+    font-style:normal;
+}
+ul{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.inputfile+label {
+    margin: 0!important;
+    cursor: pointer;
+}
+.inputfile {
+    width: .1px;
+    height: .1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+.btn_upload{
+    margin: 20px 20px;
+}
+.info-con{
+    position: relative;
+    width: 666px;
+    font-size: 12px;
+    margin: 60px auto;
+    border-radius: 7px;
+    box-shadow: 0 0 10px #ccc;
+}
+.info-title{
+    font-size: 14px;
+    line-height: 48px;
+    padding-left: 20px;
+    border-bottom: 1px solid #eee;
+}
+.info-con-ul{
+    overflow: hidden;
+    overflow-y: auto;
+    height: 388px;
+}
+.info-con-li{
+    position: relative;
+    height: 49px;
+    border-bottom: 1px solid #f2f6fd;
+    line-height: 49px;
+}
+.info {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+.file-name {
+    position: relative;
+    float: left;
+    overflow: hidden;
+    width: 43%;
+    height: 49px;
+    white-space: nowrap;
+    text-indent: 45px;
+    text-overflow: ellipsis;
+}
+.file-icon {
+    position: absolute;
+    top: 12px;
+    left: 13px;
+    width: 24px;
+    height: 24px;
+}
+.file-name .name-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.file-size {
+    float: left;
+    width: 13%;
+    height: 49px;
+    text-indent: 10px;
+}
+.file-path {
+    float: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 13%;
+    height: 49px;
+}
+.file-status {
+    position: relative;
+    float: left;
+    width: 26%;
+    height: 49px;
+    text-indent: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.file-status span {
+    display: none;
+}
+.file-operate {
+    float: left;
+    width: 18%;
+    height: 16px;
+    padding: 17px 0;
+}
+.file-operate em {
+    float: left;
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    background: url(../img/operate-icon.png) no-repeat;
+    cursor: pointer;
+}
+.file-operate em.operate-continue,.file-operate em.operate-retry{
+    display: none;
+}
+.file-operate em.operate-pause, .file-operate em.operate-pause:hover {
+    background-position: 0 0;
+}
+.fileicon-small-zip {
+    background: url(../img/ZIP.png) center no-repeat;
+}
+.file-operate em.operate-retry, .file-operate em.operate-retry:hover {
+    background-position: 0 -53px;
+}
+ .file-operate em.operate-continue, .file-operate em.operate-continue:hover {
+    background-position: 0 -17px;
+}
+.file-operate em.operate-remove, .file-operate em.operate-remove:hover {
+    background-position: 0 -34px;
+}
+.success em{
+    position: absolute;
+    top: 17px;
+    left: 20px;
+    display: block;
+    width: 16px;
+    height: 16px;
+}
+.file-status .success em {
+    background-image: url(../img/operate-sure.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.process{
+    position: absolute;
+    z-index: 0;
+    height: 100%;
+    height: 49px;
+    background: #e2eeff;
+}
