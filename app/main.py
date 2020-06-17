@@ -21,7 +21,7 @@ async def upload(request):
     args = request.args if request.method == 'GET' else request.form
     filename = args.get('filename', '')    #文件名
     filenum = args.get('filenum', 0)       #文件分片总数
-    rndstr = args.get('rndstr', '')        #随机字符串（唯一标识）
+    rndstr = args.get('rndstr', '')        #加密字符串（唯一标识）
     zoneid = args.get('zoneid', 0)         #当前分片id
     file = request.files.get('file')       #文件流
     path = os.path.abspath(os.path.dirname(__file__))
@@ -30,18 +30,38 @@ async def upload(request):
     datapath="{}\\data".format(basepath)
     if not os.path.exists(datapath):
         os.makedirs(datapath)
-    #保存文件分片
-    with open("{}\\{}".format(datapath,zoneid), 'wb') as f:
-         f.write(file.body)
-    #记录当前完成的分片id
-    with open("{}\\record.txt".format(basepath), 'w',encoding="utf-8") as f:
-         txt="{}|{}".format(zoneid,rndstr)
-         f.write(txt)
-    #判断文件是否上传完毕
-    if int(filenum)==int(zoneid)+1:
-        u=Upload()
-        u.mergefiles(rndstr,filename,int(filenum))
-    msg={"code":200,"msg":"开始上传"}
+    # 保存文件分片
+    with open("{}\\{}".format(datapath, zoneid), 'wb') as f:
+        f.write(file.body)
+    # 记录当前完成的分片id
+    with open("{}\\record.txt".format(basepath), 'w', encoding="utf-8") as f:
+        txt = "{}|{}".format(zoneid, rndstr)
+        f.write(txt)
+    # 判断文件是否上传完毕
+    if int(filenum) == int(zoneid) + 1:
+        u = Upload()
+        u.mergefiles(rndstr, filename, int(filenum))
+    msg = {"code": 200, "msg": "开始上传"}
+    return json(msg)
+
+#检查文件上传进度
+@app.route('/checkupload',methods=["POST"])
+async def checkupload(request):
+    args = request.args if request.method == 'GET' else request.form
+    rndstr = args.get('rndstr', '')  # 加密字符串（唯一标识）
+    # 基本文件夹路径
+    path = os.path.abspath(os.path.dirname(__file__))
+    basepath = "{}\\files\\{}".format(path, rndstr)
+    if os.path.exists("{}\\record.txt".format(basepath)):
+        with open("{}\\record.txt".format(basepath), 'r') as f:
+            result = f.read()
+        if result != "":
+            zoneid = int(result.split("|")[0]) + 1
+            msg = {"code": 200, "msg": "断点请求成功", "zoneid": zoneid}
+        else:
+            msg = {"code": 204, "msg": "记录文件内容为空", "zoneid": 0}
+    else:
+        msg = {"code": 205, "msg": "未找到记录文件", "zoneid": 0}
     return json(msg)
 
 #获取文件上传保存的进度
