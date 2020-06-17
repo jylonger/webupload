@@ -1,5 +1,5 @@
 #coding:utf-8
-import asyncio,time,uuid
+import asyncio,uuid
 from webupload.app import app
 from sanic.response import json
 from sanic_jinja2 import SanicJinja2
